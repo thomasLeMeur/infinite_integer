@@ -1,0 +1,15 @@
+This library provides a C structure to manipulates infinite numbers in many bases (comparaisons, operations, print)
+
+Code coverage (96.61%) :
+make re
+./prog
+gcov *.c
+
+To do :
+- infint_to_string		(utilities.c)
+- infint_new_from_string	(allocations.c)
+- div mod (operations.c)
+- update unit_tests.c
+- rule for test program, else make the library
+- update README for limit (theorical, practical in memory, limits (memory and complexity for operations) -> see .h)
+- say the tests are done for 64bits
