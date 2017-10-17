@@ -1,14 +1,17 @@
-NAME	=	prog
+NAME	=	infinite_integer_tester
 
 CC		=	gcc
 
-FLAGS	=	-Wall -Wextra -Werror -Wno-stack-protector
+#Delete the second line for a release compile
+FLAGS	=	-Wall -Wextra -Werror -Wno-stack-protector 						\
+			-g -fprofile-arcs -ftest-coverage
 
-SRCS	=	utilities.c allocations.c cleans.c comparisons.c operations.c
+INCDIR	=	includes/
 
-#Uncomment these two following FLAGS SRCS to compile with debug and code coverage
-FLAGS	=	-Wall -Wextra -Werror -Wno-stack-protector -g -fprofile-arcs -ftest-coverage
-SRCS	=	utilities.c allocations.c cleans.c comparisons.c operations.c	\
+SRCDIR	=	srcs/
+
+#Delete the second line to keep the necessary files
+SRCS	=	$(SRCDIR)utilities.c $(SRCDIR)allocations.c $(SRCDIR)cleans.c $(SRCDIR)comparisons.c $(SRCDIT)operations.c	\
 			unit_tests.c main.c
 
 
@@ -20,14 +23,14 @@ GCOV	=	$(SRCS:.c=.c.gcov) $(SRCS:.c=.gcda) $(SRCS:.c=.gcno)
 all		:	$(NAME)
 
 %.o		:	%.c
-			@$(CC) $(FLAGS) -o $@ -c $<
+			@$(CC) $(FLAGS) -o $@ -c $< -lm -I $(INCDIR)
 
 $(NAME):	$(OBJS)
-			@$(CC) $(FLAGS) -o $(NAME) $(OBJS)
+			@$(CC) $(FLAGS) -o $(NAME) $(OBJS) -lm
 			@echo "$(NAME) created"
 
 clean	:
-			@rm -f $(OBJS) $(GCOV) $(GCOV)
+			@rm -f $(OBJS) $(GCOV)
 
 fclean	:	clean
 			@rm -f $(NAME)

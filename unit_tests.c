@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "infinite_int.h"
 
@@ -82,6 +83,7 @@ void	infint_test_operations(void)
 	t_inf_int	*a;
 	t_inf_int	*b;
 	t_inf_int	*r;
+	t_inf_int	*t;
 
 	printf("Enter in %s\n", __FUNCTION__);
 
@@ -328,35 +330,200 @@ void	infint_test_operations(void)
 	infint_free(&b);
 	printf("\n");
 
-	//test div : 
-	//	- invalid a
-	//	- invalid b
-	//	- b = 0
-	//	-  3 /  2
-	//	-  3 / -2
-	//	- -3 / -2
-	//	- -3 /  2
-	//	-  2 /  3
-	//	-  2 / -3
-	//	- -2 / -3
-	//	- -2 /  3
-	//	- UINTMAX_MAX / 3
-	//	- (UINTMAX_MAX + 1) / 3
+	printf("Test infint_shift_left :\n");
+	printf("Invalid nb\n");
+	assert(infint_shift_left(NULL, 1) == NULL);
+	printf("0 << 0\n");
+	a = infint_new();
+	r = infint_shift_left(a, 0);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 0);
+	infint_free(&r);
+	printf("0 << 128\n");
+	r = infint_shift_left(a, 128);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 0);
+	infint_free(&r);
+	printf("1 << 0\n");
+	*a->nb = 1;
+	r = infint_shift_left(a, 0);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 1);
+	infint_free(&r);
+	printf("1 << 128\n");
+	r = infint_shift_left(a, 128);
+	assert(r != NULL && r->nb != NULL && r->size == 3 && *r->nb == 0 && r->nb[1] == 0 && r->nb[2] == 1);
+	infint_free(&r);
+	infint_free(&a);
+	printf("\n");
 
-	//test mod : 
-	//	- invalid a
-	//	- invalid b
-	//	- b = 0
-	//	-  3 %  2
-	//	-  3 % -2
-	//	- -3 % -2
-	//	- -3 %  2
-	//	-  2 %  3
-	//	-  2 % -3
-	//	- -2 % -3
-	//	- -2 %  3
-	//	- UINTMAX_MAX % 3
-	//	- (UINTMAX_MAX + 1) % 3
+	printf("Test infint_shift_right :\n");
+	printf("Invalid nb\n");
+	assert(infint_shift_right(NULL, 1) == NULL);
+	printf("0 >> 0\n");
+	a = infint_new();
+	r = infint_shift_right(a, 0);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 0);
+	infint_free(&r);
+	printf("0 >> 128\n");
+	r = infint_shift_right(a, 128);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 0);
+	infint_free(&r);
+	printf("1 >> 1\n");
+	*a->nb = 1;
+	r = infint_shift_right(a, 1);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 0);
+	infint_free(&r);
+	printf("(1 << 128) >> 64\n");
+	b = infint_shift_left(a, 128);
+	r = infint_shift_right(b, 64);
+	assert(r != NULL && r->nb != NULL && r->size == 2 && *r->nb == 0 && r->nb[1] == 1);
+	infint_free(&r);
+	printf("(1 << 128) >> 128\n");
+	r = infint_shift_right(b, 128);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 1);
+	infint_free(&r);
+	infint_free(&a);
+	infint_free(&b);
+	printf("\n");
+
+	printf("Test infint_div :\n");
+	a = infint_new_with_value(3, INF_INT_POSITIVE);
+	b = infint_new_with_value(0, INF_INT_POSITIVE);
+	printf("Invalid a\n");
+	assert(infint_div(NULL, b) == NULL);
+	printf("Invalid b\n");
+	assert(infint_div(a, NULL) == NULL);
+	printf("3 / 0\n");
+	assert(infint_div(a, b) == NULL);
+	printf("3 / 2\n");
+	*b->nb = 2;
+	r = infint_div(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 1 && infint_is_positive(r));
+	infint_free(&r);
+	printf("3 / -2\n");
+	infint_invert(b);
+	r = infint_div(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 2 && infint_is_negative(r));
+	infint_free(&r);
+	printf("-3 / -2\n");
+	infint_invert(a);
+	r = infint_div(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 1 && infint_is_positive(r));
+	infint_free(&r);
+	printf("-3 / 2\n");
+	infint_invert(b);
+	r = infint_div(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 2 && infint_is_negative(r));
+	infint_free(&r);
+	printf("2 / 3\n");
+	infint_invert(a);
+	*a->nb = 2;
+	*b->nb = 3;
+	r = infint_div(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 0 && infint_is_positive(r));
+	infint_free(&r);
+	printf("2 / -3\n");
+	infint_invert(b);
+	r = infint_div(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 1 && infint_is_negative(r));
+	infint_free(&r);
+	printf("-2 / -3\n");
+	infint_invert(a);
+	r = infint_div(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 0 && infint_is_positive(r));
+	infint_free(&r);
+	printf("-2 / 3\n");
+	infint_invert(b);
+	r = infint_div(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 1 && infint_is_negative(r));
+	infint_free(&r);
+	printf("%ju / 3\n", UINTMAX_MAX);
+	infint_invert(a);
+	*a->nb = UINTMAX_MAX;
+	r = infint_div(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 6148914691236517205 && infint_is_positive(r));
+	infint_free(&r);
+	printf("(%ju + 1) / 3\n", UINTMAX_MAX);
+	t = infint_new_with_value(1, INF_INT_POSITIVE);
+	r = infint_add(a, t);
+	infint_free(&t);
+	infint_free(&a);
+	a = r;
+	r = infint_div(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 6148914691236517205 && infint_is_positive(r));
+	infint_free(&r);
+	infint_free(&a);
+	infint_free(&b);
+	printf("\n");
+
+	printf("Test infint_mod :\n");
+	a = infint_new_with_value(3, INF_INT_POSITIVE);
+	b = infint_new_with_value(0, INF_INT_POSITIVE);
+	printf("Invalid a\n");
+	assert(infint_mod(NULL, b) == NULL);
+	printf("Invalid b\n");
+	assert(infint_mod(a, NULL) == NULL);
+	printf("3 %% 0\n");
+	assert(infint_mod(a, b) == NULL);
+	printf("3 %% 2\n");
+	*b->nb = 2;
+	r = infint_mod(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 1 && infint_is_positive(r));
+	infint_free(&r);
+	printf("3 %% -2\n");
+	infint_invert(b);
+	r = infint_mod(a, b);
+	printf("r : %p\n-> r->nb : %p\n-->r->size : %ju / *r->nb : %c%ju\n", r, r->nb, r->size, (infint_is_positive(r)) ? '+' : '-', *r->nb);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 1 && infint_is_negative(r));
+	infint_free(&r);
+	printf("-3 %% -2\n");
+	infint_invert(a);
+	r = infint_mod(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 1 && infint_is_negative(r));
+	infint_free(&r);
+	printf("-3 %% 2\n");
+	infint_invert(b);
+	r = infint_mod(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 1 && infint_is_positive(r));
+	infint_free(&r);
+	printf("2 %% 3\n");
+	infint_invert(a);
+	*a->nb = 2;
+	*b->nb = 3;
+	r = infint_mod(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 2 && infint_is_positive(r));
+	infint_free(&r);
+	printf("2 %% -3\n");
+	infint_invert(b);
+	r = infint_mod(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 1 && infint_is_negative(r));
+	infint_free(&r);
+	printf("-2 %% -3\n");
+	infint_invert(a);
+	r = infint_mod(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 2 && infint_is_negative(r));
+	infint_free(&r);
+	printf("-2 %% 3\n");
+	infint_invert(b);
+	r = infint_mod(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 1 && infint_is_positive(r));
+	infint_free(&r);
+	printf("%ju %% 3\n", UINTMAX_MAX);
+	infint_invert(a);
+	*a->nb = UINTMAX_MAX;
+	r = infint_mod(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 0 && infint_is_positive(r));
+	infint_free(&r);
+	printf("(%ju + 1) %% 3\n", UINTMAX_MAX);
+	t = infint_new_with_value(1, INF_INT_POSITIVE);
+	r = infint_add(a, t);
+	infint_free(&t);
+	infint_free(&a);
+	a = r;
+	r = infint_mod(a, b);
+	assert(r != NULL && r->nb != NULL && r->size == 1 && *r->nb == 1 && infint_is_positive(r));
+	infint_free(&r);
+	infint_free(&a);
+	infint_free(&b);
+	printf("\n");
 
 	printf("Exit from %s\n", __FUNCTION__);
 }
@@ -369,7 +536,9 @@ void	infint_test_utilities(void)
 	int8_t		i8_cnt;
 	uint8_t		u8_cnt;
 	void		*back;
+	char		*s;
 	t_inf_int	n;
+	t_inf_int	*a;
 
 	n.nb = NULL;
 	printf("Enter in %s\n", __FUNCTION__);
@@ -402,9 +571,10 @@ void	infint_test_utilities(void)
 	n.size = 0;
 	printf("Invalid number\n");
 	assert(infint_is_zero(&n) == 0);
-	n.size = 2;
-	printf("Number stored with two elements\n");
-	assert(infint_is_zero(&n) == 0);
+	printf("Number stored with two elements but with 0 values\n");
+	infint_reset(&n);
+	infint_update_size(&n, 2);
+	assert(infint_is_zero(&n) == 1);
 	n.size = 1;
 	*n.nb = 1;
 	printf("Number stored with one element of value non zero\n");
@@ -523,9 +693,88 @@ void	infint_test_utilities(void)
 	infint_clear(&n);
 	printf("\n");
 
-	printf("Test infinit_to_string :\n");
-	//create some number (neg, pos, 0, short, big)
-	//test some output bases
+	printf("Test infint_to_string :\n");
+	a = infint_new();
+	printf("Invalid number\n");
+	assert(infint_to_string(NULL, 10) == NULL);
+	printf("Invalid base (< 2)\n");
+	assert(infint_to_string(a, 1) == NULL);
+	printf("Invalid base (> 36)\n");
+	assert(infint_to_string(a, 40) == NULL);
+	printf("0 base 2\n");
+	s = infint_to_string(a, 2);
+	assert(s != NULL && strcmp(s, "0") == 0);
+	free(s);
+	printf("0 base 10\n");
+	s = infint_to_string(a, 10);
+	assert(s != NULL && strcmp(s, "0") == 0);
+	free(s);
+	printf("0 base 16\n");
+	s = infint_to_string(a, 16);
+	assert(s != NULL && strcmp(s, "0") == 0);
+	free(s);
+	printf("0 base 31\n");
+	s = infint_to_string(a, 31);
+	assert(s != NULL && strcmp(s, "0") == 0);
+	free(s);
+	printf("1664 base 2\n");
+	*a->nb = 1664;
+	s = infint_to_string(a, 2);
+	assert(s != NULL && strcmp(s, "11010000000") == 0);
+	free(s);
+	printf("1664 base 10\n");
+	s = infint_to_string(a, 10);
+	assert(s != NULL && strcmp(s, "1664") == 0);
+	free(s);
+	printf("1664 base 16\n");
+	s = infint_to_string(a, 16);
+	assert(s != NULL && strcmp(s, "680") == 0);
+	free(s);
+	printf("1664 base 31\n");
+	s = infint_to_string(a, 31);
+	assert(s != NULL && strcmp(s, "1ML") == 0);
+	free(s);
+	printf("-1664 base 2\n");
+	infint_invert(a);
+	s = infint_to_string(a, 2);
+	assert(s != NULL && strcmp(s, "-11010000000") == 0);
+	free(s);
+	printf("-1664 base 10\n");
+	s = infint_to_string(a, 10);
+	assert(s != NULL && strcmp(s, "-1664") == 0);
+	free(s);
+	printf("-1664 base 16\n");
+	s = infint_to_string(a, 16);
+	assert(s != NULL && strcmp(s, "-680") == 0);
+	free(s);
+	printf("-1664 base 31\n");
+	s = infint_to_string(a, 31);
+	assert(s != NULL && strcmp(s, "-1ML") == 0);
+	free(s);
+	printf("(2 ** 256) base 2\n");
+	infint_invert(a);
+	infint_update_size(a, 5);
+	a->nb[0] = 0;
+	a->nb[1] = 0;
+	a->nb[2] = 0;
+	a->nb[3] = 0;
+	a->nb[4] = 1;
+	s = infint_to_string(a, 2);
+	assert(s != NULL && strcmp(s, "10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000") == 0);
+	free(s);
+	printf("(2 ** 256) base 10\n");
+	s = infint_to_string(a, 10);
+	assert(s != NULL && strcmp(s, "115792089237316195423570985008687907853269984665640564039457584007913129639936") == 0);
+	free(s);
+	printf("(2 ** 256) base 16\n");
+	s = infint_to_string(a, 16);
+	assert(s != NULL && strcmp(s, "10000000000000000000000000000000000000000000000000000000000000000") == 0);
+	free(s);
+	printf("(2 ** 256) base 31\n");
+	s = infint_to_string(a, 31);
+	assert(s != NULL && strcmp(s, "A313GILNOEIIEKT9559BQU7H8PBH49N65LT9EK54EO1C67N06B92") == 0);
+	free(s);
+	infint_free(&a);
 	printf("\n");
 
 	printf("Exit from %s\n", __FUNCTION__);
@@ -563,10 +812,11 @@ void	infint_test_comparisons(void)
 	printf("a = +5 / b = -5\n");
 	assert(infint_is_equal(&a, &b) == 0);
 	b.sign = INF_INT_POSITIVE;
-	a.size = 2;
+	infint_update_size(&a, 2);
+	a.nb[1] = 1;
 	printf("Storage size of a = 2 / storage size of b = 1\n");
 	assert(infint_is_equal(&a, &b) == 0);
-	a.size = 1;
+	infint_update_size(&a, 1);
 	*b.nb = 4;
 	printf("a = 5 / b = 4\n");
 	assert(infint_is_equal(&a, &b) == 0);
@@ -595,10 +845,10 @@ void	infint_test_comparisons(void)
 	printf("a = +5 / b = -5\n");
 	assert(infint_is_nequal(&a, &b) == 1);
 	b.sign = INF_INT_POSITIVE;
-	a.size = 2;
-	printf("Storage size of a = 2 / storage size of b = 1\n");
-	assert(infint_is_nequal(&a, &b) == 1);
-	a.size = 1;
+	infint_update_size(&a, 2);
+	printf("Storage size of a = 2 / storage size of b = 1 / but with same value\n");
+	assert(infint_is_nequal(&a, &b) == 0);
+	infint_update_size(&a, 1);
 	*b.nb = 4;
 	printf("a = 5 / b = 4\n");
 	assert(infint_is_nequal(&a, &b) == 1);
@@ -627,14 +877,15 @@ void	infint_test_comparisons(void)
 	printf("a = +5 / b = -5\n");
 	assert(infint_is_greater(&a, &b) == 1);
 	b.sign = INF_INT_POSITIVE;
-	a.size = 2;
+	infint_update_size(&a, 2);
+	a.nb[1] = 1;
 	printf("Storage size of +a = 2 / storage size of +b = 1\n");
 	assert(infint_is_greater(&a, &b) == 1);
 	a.sign = INF_INT_NEGATIVE;
 	b.sign = INF_INT_NEGATIVE;
 	printf("Storage size of -a = 2 / storage size of -b = 1\n");
 	assert(infint_is_greater(&a, &b) == 0);
-	a.size = 1;
+	infint_update_size(&a, 1);
 	*b.nb = 4;
 	printf("a = -5 / b = -4\n");
 	assert(infint_is_greater(&a, &b) == 0);
@@ -669,11 +920,12 @@ void	infint_test_comparisons(void)
 	*b.nb = 5;
 	printf("a = +5 / b = -5\n");
 	assert(infint_is_smaller_equal(&a, &b) == 0);
-	b.sign = INF_INT_POSITIVE;
-	a.size = 2;
+	b.sign = INF_INT_NEGATIVE;
+	infint_update_size(&a, 2);
 	printf("Storage size of a = 2 / storage size of b = 1\n");
 	assert(infint_is_smaller_equal(&a, &b) == 0);
-	a.size = 1;
+	infint_update_size(&a, 1);
+	b.sign = INF_INT_POSITIVE;
 	*b.nb = 4;
 	printf("a = 5 / b = 4\n");
 	assert(infint_is_smaller_equal(&a, &b) == 0);
@@ -702,14 +954,15 @@ void	infint_test_comparisons(void)
 	printf("a = +5 / b = -5\n");
 	assert(infint_is_smaller(&a, &b) == 0);
 	b.sign = INF_INT_POSITIVE;
-	a.size = 2;
+	infint_update_size(&a, 2);
+	a.nb[1] = 1;
 	printf("Storage size of +a = 2 / storage size of +b = 1\n");
 	assert(infint_is_smaller(&a, &b) == 0);
 	a.sign = INF_INT_NEGATIVE;
 	b.sign = INF_INT_NEGATIVE;
 	printf("Storage size of -a = 2 / storage size of -b = 1\n");
 	assert(infint_is_smaller(&a, &b) == 1);
-	a.size = 1;
+	infint_update_size(&a, 1);
 	*b.nb = 4;
 	printf("a = -5 / b = -4\n");
 	assert(infint_is_smaller(&a, &b) == 1);
@@ -745,10 +998,10 @@ void	infint_test_comparisons(void)
 	printf("a = +5 / b = -5\n");
 	assert(infint_is_greater_equal(&a, &b) == 1);
 	b.sign = INF_INT_POSITIVE;
-	a.size = 2;
+	infint_update_size(&a, 2);
 	printf("Storage size of a = 2 / storage size of b = 1\n");
 	assert(infint_is_greater_equal(&a, &b) == 1);
-	a.size = 1;
+	infint_update_size(&a, 1);
 	*b.nb = 4;
 	printf("a = 5 / b = 4\n");
 	assert(infint_is_greater_equal(&a, &b) == 1);
@@ -768,6 +1021,7 @@ void	infint_test_comparisons(void)
 void	infint_test_allocations(void)
 {
 	int			i;
+	char		*s;
 	t_inf_int	*n;
 	t_inf_int	*clone;
 	int			proof;
@@ -863,12 +1117,54 @@ void	infint_test_allocations(void)
 	printf("\n");
 
 	printf("Test infint_from_string :\n");
-	//Test :
-	//	- wrong alphabet
-	//	- wrong +-
-	//	- some bases
-	//	- some short and big numbers
-	//	- comparison with infint_to_string ?
+	printf("Wrong alphabet\n");
+	assert(infint_new_from_string("12345;4", 10) == NULL);
+	printf("Just a sign\n");
+	assert(infint_new_from_string("-", 10) == NULL);
+	printf("Bad sign format\n");
+	assert(infint_new_from_string("1+23454", 10) == NULL);
+	printf("Wrong base (< 2)\n");
+	assert(infint_new_from_string("123454", 1) == NULL);
+	printf("Wrong base (> 36)\n");
+	assert(infint_new_from_string("123454", 40) == NULL);
+	printf("Alphabet and base not matching\n");
+	assert(infint_new_from_string("123454", 5) == NULL);
+	printf("+0 base 2\n");
+	n = infint_new_from_string("+0", 2);
+	s = infint_to_string(n, 10);
+	assert(n != NULL && strcmp(s, "0") == 0);
+	free(s);
+	infint_free(&n);
+	printf("-0 base 10\n");
+	n = infint_new_from_string("-0", 10);
+	s = infint_to_string(n, 10);
+	assert(n != NULL && strcmp(s, "0") == 0);
+	free(s);
+	infint_free(&n);
+	printf("0 base 16\n");
+	n = infint_new_from_string("0", 16);
+	s = infint_to_string(n, 10);
+	assert(n != NULL && strcmp(s, "0") == 0);
+	free(s);
+	infint_free(&n);
+	printf("123456789 base 31\n");
+	n = infint_new_from_string("123456789", 31);
+	s = infint_to_string(n, 10);
+	assert(n != NULL && strcmp(s, "910698096645") == 0);
+	free(s);
+	infint_free(&n);
+	printf("-765128761926112 base 10\n");
+	n = infint_new_from_string("-765128761926112", 10);
+	s = infint_to_string(n, 10);
+	assert(n != NULL && strcmp(s, "-765128761926112") == 0);
+	free(s);
+	infint_free(&n);
+	printf("1234567890ABCDEFGHIJKLMnopqrstuvwxyz base 36\n");
+	n = infint_new_from_string("1234567890ABCDEFGHIJKLMnopqrstuvwxyz", 36);
+	s = infint_to_string(n, 10);
+	assert(n != NULL && strcmp(s, "3126485650002806059265235559620383787531710118313327355") == 0);
+	free(s);
+	infint_free(&n);
 	printf("\n");
 
 	printf("Exit from %s\n", __FUNCTION__);

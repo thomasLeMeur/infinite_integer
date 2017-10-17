@@ -13,12 +13,12 @@
  *			-> theorical : +/-(2 ^ SIZET_MAX)
  *			-> usual     : +/-(2 ^ 4294967296)
  *		- depending on time complexity for very big numbers : will loop
- *			-> add : O(2 * N)
- *			-> sub : O(2 * N)
- *			-> mul : O(M * N)
- *			-> pow : O(p * M * N)
- *			-> div : O()
- *			-> mod : O()
+ *			-> add : O(N * 2)
+ *			-> sub : O(N * 2)
+ *			-> mul : O(N * O(add))
+ *			-> pow : O(p * O(mul))
+ *			-> div : O(N * O(sub))
+ *			-> mod : O(N * O(sub))
 **/
 
 # define INF_INT_NB_BITS	(sizeof(uintmax_t) * CHAR_BIT)
@@ -32,11 +32,11 @@
  *	The struct which represents an infinite number grows to store it
  *	The scheme is [right bits, next left bits, next left bits, ...]
  *	Ex : 
- *		The number 18446744073709551616 (base 10) is stored as 
- *			10000000000000000000000000000000000000000000000000000000000000000 (base 2)
+ *		The number 18446744073709551618 (base 10) is stored as 
+ *			10000000000000000000000000000000000000000000000000000000000000010 (base 2)
  *		With uintmax_t = uint64_t the number will be stored as :
  *			[
- *			0000000000000000000000000000000000000000000000000000000000000000,
+ *			0000000000000000000000000000000000000000000000000000000000000010,
  *			0000000000000000000000000000000000000000000000000000000000000001
  *			]
 **/
@@ -69,6 +69,9 @@ t_inf_int	*infint_mul(t_inf_int *a, t_inf_int *b);							///a * b
 t_inf_int	*infint_div(t_inf_int *a, t_inf_int *b);							///a / b
 t_inf_int	*infint_mod(t_inf_int *a, t_inf_int *b);							///a % b
 t_inf_int	*infint_pow(t_inf_int *a, t_inf_int *b);							///a ^ b (b has to be positive)
+t_inf_int	*infint_shift_left(t_inf_int *n, uintmax_t shift);					///n << shift
+t_inf_int	*infint_shift_right(t_inf_int *n, uintmax_t shift);					///n >> shift
+uint8_t		infint_div_mod(t_inf_int *dividend, t_inf_int *divisor, t_inf_int **quotient, t_inf_int **remainder);	///Perform the real division of the two numbers (assuming they are positives)
 
 /**
  *	Allocations

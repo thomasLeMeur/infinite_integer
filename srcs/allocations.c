@@ -55,13 +55,22 @@ t_inf_int	*infint_new_with_value(uintmax_t val, int8_t sign)
 /**
  *	Create a new number from a string with a given base
 **/
-t_inf_int	*infint_new_from_string(char *s, uint8_t base)
+t_inf_int	*infint_new_from_string(char *s, uint8_t input_base)
 {
+	uintmax_t	ind;
 	int8_t		sign;
-	char		*str_nb;
+	char		*cur_c;
 	char		*find;
+	t_inf_int	*n;
+	t_inf_int	*exp;
+	t_inf_int	*pow;
+	t_inf_int	*res;
+	t_inf_int	*tmp;
+	t_inf_int	*val;
+	t_inf_int	*base;
+	t_inf_int	*incr;
 
-	if (!s || !infint_is_valid_base(base))
+	if (!s || !infint_is_valid_base(input_base))
 		return (NULL);
 	if (*s == '-' || *s == '+')
 	{
@@ -73,19 +82,72 @@ t_inf_int	*infint_new_from_string(char *s, uint8_t base)
 	if (!*s)
 		return (NULL);
 
-	//Check if there is no unexpected character
-	str_nb = s;
-	while (*str_nb)
+	//Check if there is no unexpected character and find the last digit of the string
+	cur_c = s;
+	while (*cur_c)
 	{
-		find = strchr(INF_INT_ALPHABET, toupper(*str_nb));
-		if (find == NULL || find - INF_INT_ALPHABET >= base)
+		find = strchr(INF_INT_ALPHABET, toupper(*cur_c));
+		if (find == NULL || find - INF_INT_ALPHABET >= input_base)
 			return (NULL);
-		str_nb++;
+		cur_c++;
 	}
 
-	(void)sign;
-	//Convert the string
-	return (NULL);
+	//Prepare the begin for the calculation
+	n = NULL;
+	exp = NULL;
+	pow = NULL;
+	res = NULL;
+	val = NULL;
+	base = NULL;
+	incr = NULL;
+	if (!(n = infint_new()) || !(exp = infint_new())
+	|| !(incr = infint_new_with_value(1, INF_INT_POSITIVE))
+	|| !(base = infint_new_with_value(input_base, INF_INT_POSITIVE)))
+		goto err;
+
+	//Main loop of the calculation
+	while (cur_c-- > s)
+	{
+		//n += val * (base ^ exp)
+
+		//Prepare the value to add
+		ind = strchr(INF_INT_ALPHABET, toupper(*cur_c)) - INF_INT_ALPHABET;
+		if (!(val = infint_new_with_value(ind, INF_INT_POSITIVE)))
+			goto err;
+		if (!(pow = infint_pow(base, exp)))
+			goto err;
+		if (!(res = infint_mul(val, pow)))
+			goto err;
+
+		//update the total number
+		if (!(tmp = infint_add(n, res)))
+			goto err;
+		infint_free(&n);
+		n = tmp;
+
+		//Update the exponent
+		if (!(tmp = infint_add(exp, incr)))
+			goto err;
+		infint_free(&exp);
+		exp = tmp;
+
+		infint_free(&val);
+		infint_free(&pow);
+		infint_free(&res);
+	}
+	n->sign = sign;
+	goto end;
+
+err	:
+	infint_free(&n);
+end	:
+	infint_free(&exp);
+	infint_free(&pow);
+	infint_free(&res);
+	infint_free(&val);
+	infint_free(&base);
+	infint_free(&incr);
+	return (n);
 }
 
 /**

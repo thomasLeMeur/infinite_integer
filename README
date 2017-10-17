@@ -1,15 +1,25 @@
-This library provides a C structure to manipulates infinite numbers in many bases (comparaisons, operations, print)
+This library provides a C structure and some functions to manipulate infinite integers in many bases (2 <= base <= 36)
 
-Code coverage (96.61%) :
+Code coverage (97.21%) :
 make re
 ./prog
 gcov *.c
 
+Limits :
+The theorical limit is +/-(2 ^ ((sizeof(uintmax_t) * CHAR_BIT) * UINTMAX_T))
+	With 64bits usual computer, this number is +/-(2 ^ 1180591620717411303424)
+Be carreful, there are concrete limits :
+	- size uintmax_t overflows : will crash
+	- depending on malloc (usually limited to SIZET_MAX) : will crash
+		-> theorical : +/-(2 ^ SIZET_MAX)
+		-> usual     : +/-(2 ^ 4294967296)
+	- depending on time complexity for very big numbers : will loop
+		-> add : O(N * 2)
+		-> sub : O(N * 2)
+		-> mul : O(N * O(add))
+		-> pow : O(p * O(mul))
+		-> div : O(N * O(sub))
+		-> mod : O(N * O(sub))
+
 To do :
-- infint_to_string		(utilities.c)
-- infint_new_from_string	(allocations.c)
-- div mod (operations.c)
-- update unit_tests.c
-- rule for test program, else make the library
-- update README for limit (theorical, practical in memory, limits (memory and complexity for operations) -> see .h)
-- say the tests are done for 64bits
+- rule for test program, else make the library -> say the tests are done for 64bits
