@@ -3,17 +3,21 @@ NAME	=	infinite_integer_tester
 CC		=	gcc
 
 #Delete the second line for a release compile
-FLAGS	=	-Wall -Wextra -Werror -Wno-stack-protector 						\
-			-g -fprofile-arcs -ftest-coverage
+FLAGS	=
+ifeq ($(INFINITE_INTEGER_DEBUG), 1664)
+	FLAGS	=	-Wall -Wextra -Werror -Wno-stack-protector 					\
+				-g -fprofile-arcs -ftest-coverage
+else
+	FLAGS	=	-Wall -Wextra -Werror -Wno-stack-protector
+endif
 
 INCDIR	=	includes/
 
 SRCDIR	=	srcs/
 
 #Delete the second line to keep the necessary files
-SRCS	=	$(SRCDIR)utilities.c $(SRCDIR)allocations.c $(SRCDIR)cleans.c $(SRCDIR)comparisons.c $(SRCDIT)operations.c	\
+SRCS	=	$(SRCDIR)utilities.c $(SRCDIR)allocations.c $(SRCDIR)cleans.c $(SRCDIR)comparisons.c $(SRCDIR)operations.c	\
 			unit_tests.c main.c
-
 
 OBJS	=	$(SRCS:.c=.o)
 
